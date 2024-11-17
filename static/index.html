@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFT Gallery</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <h1>NFT Gallery</h1>
+    </header>
+    <main>
+        <div class="container">
+            <div class="gallery-wrapper">
+                <button class="nav-button prev">❮</button>
+                <button class="nav-button next">❯</button>
+                <div class="gradient-overlay gradient-left"></div>
+                <div class="gradient-overlay gradient-right"></div>
+                <div class="gallery" id="gallery"></div>
+            </div>
+            <div id="loading" class="loading">Loading...</div>
+            <div id="error" class="error"></div>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

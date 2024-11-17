@@ -9,6 +9,8 @@ dotenv.config();
 const S3_API_KEY = process.env.S3_API_KEY;
 const S3_API_ENDPOINT = process.env.S3_API_ENDPOINT;
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const PART_SIZE = 5 * 1024 * 1024; // 5MB Part size for multipart upload
 
 // Validate environment variables
 if (!S3_API_KEY || !S3_API_ENDPOINT || !CLOUDFRONT_DOMAIN) {
@@ -20,6 +22,13 @@ export async function uploadImage(filePath) {
     // Check if file exists
     if (!fs.existsSync(filePath)) {
       console.error(`Error: File not found at path "${filePath}"`);
+      return;
+    }
+
+    // Check file size
+    const stats = fs.statSync(filePath);
+    if (stats.size > MAX_FILE_SIZE) {
+      console.error(`Error: File size ${stats.size} exceeds the maximum allowed size of ${MAX_FILE_SIZE} bytes`);
       return;
     }
 
@@ -35,30 +44,54 @@ export async function uploadImage(filePath) {
       return;
     }
 
-    // Prepare the request payload
-    const payload = {
-      image: imageBase64,
-      imageType: imageType,
-    };
+    // Check file size for multipart upload
+    if (stats.size > MAX_FILE_SIZE) {
+      // Initiate multipart upload
+      const uploadId = await initiateMultipartUpload();
 
-    // Send POST request to upload the image
-    const response = await axios.post(S3_API_ENDPOINT, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': S3_API_KEY,
-      },
-    });
+      // Split file into parts
+      const parts = splitFileIntoParts(filePath, PART_SIZE);
+      const uploadedParts = [];
 
-    if (response.status === 200) {
-      console.log(response.data.statusCode);
-      const { message, url } = JSON.parse(response.data.body);
-      console.log('Upload Successful!');
-      console.log(`Message: ${message}`);
-      console.log(`Image URL: ${url}`);
-      return url;
+      // Upload each part
+      for (let i = 0; i < parts.length; i++) {
+        const partNumber = i + 1;
+        const part = parts[i];
+        const uploadedPart = await uploadPart(uploadId, partNumber, part);
+        uploadedParts.push(uploadedPart);
+        console.log(`Uploaded part ${partNumber}`);
+      }
+
+      // Complete multipart upload
+      const imageUrl = await completeMultipartUpload(uploadId, uploadedParts);
+      console.log('Multipart upload completed successfully.');
+      return imageUrl;
     } else {
-      console.error(`Unexpected response status: ${response.status}`);
-      console.error(response.data);
+      // Prepare the request payload
+      const payload = {
+        image: imageBase64,
+        imageType: imageType,
+      };
+
+      // Send POST request to upload the image
+      const response = await axios.post(S3_API_ENDPOINT, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': S3_API_KEY,
+        },
+      });
+
+      if (response.status === 200) {
+        console.log(response.data.statusCode);
+        const { message, url } = JSON.parse(response.data.body);
+        console.log('Upload Successful!');
+        console.log(`Message: ${message}`);
+        console.log(`Image URL: ${url}`);
+        return url;
+      } else {
+        console.error(`Unexpected response status: ${response.status}`);
+        console.error(response.data);
+      }
     }
   } catch (error) {
     if (error.response) {
@@ -68,6 +101,31 @@ export async function uploadImage(filePath) {
     }
     throw error; // Re-throw error instead of just logging
   }
+}
+
+// Helper function to initiate multipart upload
+async function initiateMultipartUpload() {
+  // Implement API call to initiate multipart upload and return uploadId
+}
+
+// Helper function to split file into parts
+function splitFileIntoParts(filePath, partSize) {
+  const imageBuffer = fs.readFileSync(filePath);
+  const parts = [];
+  for (let i = 0; i < imageBuffer.length; i += partSize) {
+    parts.push(imageBuffer.slice(i, i + partSize));
+  }
+  return parts;
+}
+
+// Helper function to upload a single part
+async function uploadPart(uploadId, partNumber, part) {
+  // Implement API call to upload part and return part details
+}
+
+// Helper function to complete multipart upload
+async function completeMultipartUpload(uploadId, parts) {
+  // Implement API call to complete multipart upload and return the image URL
 }
 
 export async function downloadImage(imageUrl, savePath) {

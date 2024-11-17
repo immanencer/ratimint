@@ -2,16 +2,22 @@
   "type": "module",
   "dependencies": {
     "axios": "^1.7.7",
+    "bullmq": "^5.26.2",
     "dotenv": "^16.4.5",
-    "openai": "^4.72.0"
+    "mongodb": "^6.10.0",
+    "openai": "^4.72.0",
+    "telegraf": "^4.16.3"
   },
   "name": "ratimint",
   "version": "1.0.0",
   "main": "create.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
 }

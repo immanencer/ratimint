@@ -18,10 +18,10 @@ const openai = new OpenAI({
 });
 
 // Folder containing images
-const imagesFolder = './images';
+const imagesFolder = './static/images';
 
 // Output folder for assets
-const assetsFolder = './assets';
+const assetsFolder = './static/assets';
 
 // Ensure assets directory exists
 if (!fs.existsSync(assetsFolder)) {
@@ -49,8 +49,8 @@ async function generateDescriptionForImage(imageUrl, prompt = "Write a short, hu
                 role: 'user', content: [
                     { type: "text", text: prompt },
                     {
-                        type: 'image',
-                        data: imageUrl, // Use imageUrl directly
+                        type: 'image_url',
+                        image_url: { url: imageUrl }, // Use imageUrl directly
                     }
                 ]
             }
@@ -63,7 +63,7 @@ async function generateDescriptionForImage(imageUrl, prompt = "Write a short, hu
         throw new Error(response.choices[0].error.message);
     }
 
-    return response.choices[0].text.trim();
+    return response.choices[0].message;
 }
 
 async function processImages() {
@@ -82,12 +82,13 @@ async function processImages() {
         console.log(`Uploaded to S3: ${imageUrl}`);
 
         // Generate description
-        const description = await generateDescriptionForImage(imageUrl); // Pass imageUrl instead of imagePath
+        const description = (await generateDescriptionForImage(imageUrl)).content; // Pass imageUrl instead of imagePath
+        const name = (await generateDescriptionForImage(imageUrl, "Name this image in only two or three words.")).content;
 
         // Create metadata JSON with S3 URL
         const metadata = {
-            name: imageName,
-            symbol: '',
+            name: name,
+            symbol: '$BOB',
             description: description,
             seller_fee_basis_points: 500,
             image: imageUrl,
