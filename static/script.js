@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to generate random index (modify range based on your total NFTs)
     function getRandomIndex() {
-        return Math.floor(Math.random() * 20); // Assuming you have 20 NFTs
+        return Math.floor(Math.random() * 142); // Assuming you have 20 NFTs
     }
 
     async function fetchNFT(position = 'end') {
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const randomIndex = getRandomIndex();
 
         try {
-            const response = await fetch(`http://127.0.0.1:3000/assets/${randomIndex}.json`);
+            const response = await fetch(`http://127.0.0.1:3000/static/assets/${randomIndex}.json`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             const data = await response.json();
@@ -92,9 +92,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'ArrowLeft') scrollGallery(-1);
         if (e.key === 'ArrowRight') scrollGallery(1);
     });
-
-    // Remove custom smooth scrolling physics
-    // --- Removed smoothScroll function and related event listeners ---
 
     // Start the gallery
     initialLoad();

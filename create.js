@@ -5,9 +5,10 @@ import fs from 'fs';
 import path from 'path';
 
 import { OpenAI } from 'openai';
-import { uploadImage } from './s3imageService.js';
+import { uploadMedia } from './s3imageService.js';
 
 const VISION_MODEL = process.env.VISION_MODEL;
+const TEXT_MODEL = process.env.TEXT_MODEL;
 const SYSTEM_PROMPT = fs.readFileSync('./system_prompt.txt', 'utf-8');
 
 // Load OpenAI API key from environment variables
@@ -39,12 +40,12 @@ const imageFiles = fs
 //     return imageBuffer.toString('base64');
 // }
 
-async function generateDescriptionForImage(imageUrl, prompt = "Write a short, humorous caption for this image:") {
+async function generateDescriptionForImage(imageUrl, prompt = "Write a short, humorous caption for this image.") {
     // const base64Image = encodeImageToBase64(imageUrl);
     const response = await openai.chat.completions.create({
         model: VISION_MODEL,
         messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'system', content: "You are Bob the obsequious snake." },
             {
                 role: 'user', content: [
                     { type: "text", text: prompt },
@@ -55,7 +56,6 @@ async function generateDescriptionForImage(imageUrl, prompt = "Write a short, hu
                 ]
             }
         ],
-        max_tokens: 100,
         stream: false,
     });
 
@@ -75,15 +75,15 @@ async function processImages() {
         console.log(`Processing ${imageFile}...`);
 
         // Upload to S3 via service
-        const imageUrl = await uploadImage(imagePath);
+        const imageUrl = await uploadMedia(imagePath);
         if (!imageUrl) {
             throw new Error(`Failed to upload image ${imageFile}`);
         }
         console.log(`Uploaded to S3: ${imageUrl}`);
 
         // Generate description
-        const description = (await generateDescriptionForImage(imageUrl)).content; // Pass imageUrl instead of imagePath
-        const name = (await generateDescriptionForImage(imageUrl, "Name this image in only two or three words.")).content;
+        const description = (await generateDescriptionForImage(imageUrl, "Provide a SHORT funny caption for this image.")).content; // Pass imageUrl instead of imagePath
+        const name = (await generateDescriptionForImage(imageUrl, "Provide a very SHORT title for this image.")).content;
 
         // Create metadata JSON with S3 URL
         const metadata = {

@@ -17,7 +17,7 @@ if (!S3_API_KEY || !S3_API_ENDPOINT || !CLOUDFRONT_DOMAIN) {
   throw new Error('Missing one or more required environment variables (S3_API_KEY, S3_API_ENDPOINT, CLOUDFRONT_DOMAIN)');
 }
 
-export async function uploadImage(filePath) {
+export async function uploadMedia(filePath) {
   try {
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -128,13 +128,8 @@ async function completeMultipartUpload(uploadId, parts) {
   // Implement API call to complete multipart upload and return the image URL
 }
 
-export async function downloadImage(imageUrl, savePath) {
+export async function downloadMedia(imageUrl, savePath) {
   try {
-    // Validate the image URL
-    if (!imageUrl.startsWith(CLOUDFRONT_DOMAIN)) {
-      console.error(`Error: The image URL must start with your CloudFront domain (${CLOUDFRONT_DOMAIN})`);
-      return;
-    }
 
     // Send GET request to download the image
     const response = await axios.get(imageUrl, {
